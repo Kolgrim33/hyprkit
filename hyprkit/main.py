@@ -1,5 +1,6 @@
 import argparse
 import sys
+from hyprkit import waybar as wb
 
 from rich.console import Console
 from rich.table import Table
@@ -35,7 +36,47 @@ def cmd_list() -> int:
     console.print(table)
     return 0
 
+def cmd_waybar_list() -> int:
+    try:
+        path = wb.find_config()
+        config = wb.load_config(path)
+    except wb.WaybarConfigError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        return 1
 
+    console.print(f"Config: [dim]{path}[/dim]\n")
+    modules = wb.list_modules(config)
+    for array, mods in modules.items():
+        console.print(f"[bold]{array}[/bold]")
+        if not mods:
+            console.print("  (none)")
+        for m in mods:
+            console.print(f"  ✓ {m}")
+        console.print()
+    return 0
+
+
+def cmd_waybar_toggle(module: str, array: str) -> int:
+    try:
+        path = wb.find_config()
+        config = wb.load_config(path)
+    except wb.WaybarConfigError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        return 1
+
+    config, enabled = wb.toggle_module(config, module, array)
+    state = "[green]enabled[/green]" if enabled else "[yellow]disabled[/yellow]"
+    console.print(f"{module} will be {state}.")
+
+    if not Confirm.ask("Save and reload waybar?"):
+        console.print("[yellow]Not saved.[/yellow]")
+        return 0
+
+    backup_path = wb.save_config(config, path)
+    wb.reload_waybar()
+    console.print(f"[green]Saved and reloaded.[/green] Backup: {backup_path}")
+    console.print("[dim]Note: saving rewrites the file as plain JSON, so any comments in config.jsonc are not preserved.[/dim]")
+    return 0
 def cmd_set(name: str) -> int:
     monitor = mon.find_monitor(name)
     if monitor is None:
@@ -85,7 +126,11 @@ def main() -> int:
     monitors_sub = monitors_parser.add_subparsers(dest="monitors_command")
     set_parser = monitors_sub.add_parser("set", help="Interactively configure a monitor")
     set_parser.add_argument("name", help="Monitor name (e.g. eDP-1)")
-
+    waybar_parser = sub.add_parser("waybar", help="Manage Waybar modules")
+    waybar_sub = waybar_parser.add_subparsers(dest="waybar_command")
+    toggle_parser = waybar_sub.add_parser("toggle", help="Enable/disable a module")
+    toggle_parser.add_argument("module", help="Module name (e.g. clock, battery, network)")
+    toggle_parser.add_argument("--array", default="modules-right", choices=["modules-left", "modules-center", "modules-right"])
     args = parser.parse_args()
 
     if args.command == "monitors":
@@ -95,6 +140,10 @@ def main() -> int:
 
     parser.print_help()
     return 0
+    if args.command == "waybar":
+        if args.waybar_command == "toggle":
+            return cmd_waybar_toggle(args.module, args.array)
+        return cmd_waybar_list()
 
 
 if __name__ == "__main__":
