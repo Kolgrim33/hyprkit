@@ -1,0 +1,19 @@
+[project]
+name = "hyprkit"
+version = "0.1.0"
+description = "A companion CLI for managing Hyprland — starting with monitor configuration."
+authors = [{ name = "Selby Mashiki" }]
+requires-python = ">=3.10"
+dependencies = [
+    "rich>=13.0",
+]
+
+[project.scripts]
+hyprkit = "hyprkit.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["hyprkit*"]
