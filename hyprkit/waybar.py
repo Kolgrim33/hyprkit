@@ -27,12 +27,16 @@ def find_config() -> Path:
 
 
 def _strip_jsonc_comments(text: str) -> str:
-    """Strip // line comments and /* */ block comments so the standard
-    json module can parse waybar's config.jsonc. Naive but sufficient
-    for waybar's typical config style (no // or /* inside string values
-    in practice, though this could misfire on edge cases)."""
+    """Strip // line comments, /* */ block comments, and trailing
+    commas so the standard json module can parse waybar's config.jsonc.
+    Naive but sufficient for waybar's typical config style (no // or /*
+    inside string values in practice, though this could misfire on edge
+    cases)."""
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
     text = re.sub(r"(?<!:)//.*", "", text)
+    # Remove trailing commas before a closing ] or } (valid in jsonc,
+    # invalid in strict json)
+    text = re.sub(r",(\s*[\]}])", r"\1", text)
     return text
 
 
