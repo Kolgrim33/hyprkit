@@ -1,14 +1,46 @@
 import argparse
 import sys
-from hyprkit import waybar as wb
 
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, Confirm, FloatPrompt
 
 from hyprkit import monitors as mon
+from hyprkit import waybar as wb
+from hyprkit import doctor
+from hyprkit.result import Status
 
 console = Console()
+
+
+def cmd_doctor() -> int:
+    console.print("[cyan]Running Hyprland health checks...[/cyan]\n")
+    results = doctor.run_all()
+
+    table = Table(title="Hyprland Doctor")
+    table.add_column("Check", no_wrap=True)
+    table.add_column("Status", no_wrap=True)
+    table.add_column("Detail")
+
+    icon = {Status.OK: "[green]✓[/green]", Status.WARN: "[yellow]⚠[/yellow]", Status.FAIL: "[red]✗[/red]"}
+    score = 100
+    for r in results:
+        table.add_row(r.name, icon[r.status], r.detail)
+        score -= r.score_penalty
+    score = max(score, 0)
+
+    console.print(table)
+
+    issues = [r for r in results if r.status != Status.OK]
+    if issues:
+        console.print("\n[bold]Recommendations[/bold]")
+        for r in issues:
+            console.print(f"  • [bold]{r.name}[/bold] ({r.severity.value}): {r.recommendation}")
+            if r.why_it_matters:
+                console.print(f"    [dim]{r.why_it_matters}[/dim]")
+
+    console.print(f"\n[bold]Overall Health[/bold]: {score}%\n")
+    return 0
 
 
 def cmd_list() -> int:
@@ -18,12 +50,12 @@ def cmd_list() -> int:
         console.print(f"[red]Error:[/red] {e}")
         return 1
 
-    table = Table(title="Monitors")
-    table.add_column("Name")
-    table.add_column("Resolution")
-    table.add_column("Refresh")
-    table.add_column("Scale")
-    table.add_column("Position")
+    table = Table(title="Monitors", expand=False)
+    table.add_column("Name", no_wrap=True)
+    table.add_column("Resolution", no_wrap=True)
+    table.add_column("Refresh", no_wrap=True)
+    table.add_column("Scale", no_wrap=True)
+    table.add_column("Position", no_wrap=True)
 
     for m in mons:
         table.add_row(
@@ -35,6 +67,7 @@ def cmd_list() -> int:
         )
     console.print(table)
     return 0
+
 
 def cmd_waybar_list() -> int:
     try:
@@ -77,6 +110,8 @@ def cmd_waybar_toggle(module: str, array: str) -> int:
     console.print(f"[green]Saved and reloaded.[/green] Backup: {backup_path}")
     console.print("[dim]Note: saving rewrites the file as plain JSON, so any comments in config.jsonc are not preserved.[/dim]")
     return 0
+
+
 def cmd_set(name: str) -> int:
     monitor = mon.find_monitor(name)
     if monitor is None:
@@ -126,11 +161,19 @@ def main() -> int:
     monitors_sub = monitors_parser.add_subparsers(dest="monitors_command")
     set_parser = monitors_sub.add_parser("set", help="Interactively configure a monitor")
     set_parser.add_argument("name", help="Monitor name (e.g. eDP-1)")
+
     waybar_parser = sub.add_parser("waybar", help="Manage Waybar modules")
     waybar_sub = waybar_parser.add_subparsers(dest="waybar_command")
     toggle_parser = waybar_sub.add_parser("toggle", help="Enable/disable a module")
     toggle_parser.add_argument("module", help="Module name (e.g. clock, battery, network)")
-    toggle_parser.add_argument("--array", default="modules-right", choices=["modules-left", "modules-center", "modules-right"])
+    toggle_parser.add_argument(
+        "--array",
+        default="modules-right",
+        choices=["modules-left", "modules-center", "modules-right"],
+    )
+
+    sub.add_parser("doctor", help="Run Hyprland health checks")
+
     args = parser.parse_args()
 
     if args.command == "monitors":
@@ -138,12 +181,16 @@ def main() -> int:
             return cmd_set(args.name)
         return cmd_list()
 
-    parser.print_help()
-    return 0
     if args.command == "waybar":
         if args.waybar_command == "toggle":
             return cmd_waybar_toggle(args.module, args.array)
         return cmd_waybar_list()
+
+    if args.command == "doctor":
+        return cmd_doctor()
+
+    parser.print_help()
+    return 0
 
 
 if __name__ == "__main__":
