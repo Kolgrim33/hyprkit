@@ -8,6 +8,7 @@ from rich.prompt import Prompt, Confirm, FloatPrompt
 from hyprkit import monitors as mon
 from hyprkit import waybar as wb
 from hyprkit import doctor
+from hyprkit import lint as lint_mod
 from hyprkit.result import Status
 
 console = Console()
@@ -41,6 +42,40 @@ def cmd_doctor() -> int:
 
     console.print(f"\n[bold]Overall Health[/bold]: {score}%\n")
     return 0
+
+
+def cmd_lint() -> int:
+    from hyprkit.lint import DEFAULT_CONFIG
+    path = DEFAULT_CONFIG
+    console.print(f"[cyan]Linting[/cyan] [dim]{path}[/dim]\n")
+
+    issues = lint_mod.lint_config(path)
+
+    if not issues:
+        console.print("[green]✓ No issues found.[/green]")
+        return 0
+
+    table = Table(title="hyprkit lint")
+    table.add_column("Line", no_wrap=True, justify="right")
+    table.add_column("Severity", no_wrap=True)
+    table.add_column("Issue")
+
+    severity_color = {
+        "High": "[red]HIGH[/red]",
+        "Medium": "[yellow]MEDIUM[/yellow]",
+        "Low": "[dim]LOW[/dim]",
+    }
+
+    for issue in issues:
+        line_str = str(issue.line_no) if issue.line_no else "—"
+        sev = severity_color.get(issue.severity.value, issue.severity.value)
+        table.add_row(line_str, sev, issue.message)
+
+    console.print(table)
+    console.print(f"\n[bold]{len(issues)} issue(s) found.[/bold]\n")
+
+    highs = sum(1 for i in issues if i.severity.value == "High")
+    return 1 if highs > 0 else 0
 
 
 def cmd_list() -> int:
@@ -157,6 +192,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="hyprkit", description="A companion CLI for managing Hyprland.")
     sub = parser.add_subparsers(dest="command")
 
+    sub.add_parser("lint", help="Lint your hyprland.conf for common issues")
+    sub.add_parser("doctor", help="Run Hyprland health checks")
+
     monitors_parser = sub.add_parser("monitors", help="List or configure monitors")
     monitors_sub = monitors_parser.add_subparsers(dest="monitors_command")
     set_parser = monitors_sub.add_parser("set", help="Interactively configure a monitor")
@@ -172,9 +210,13 @@ def main() -> int:
         choices=["modules-left", "modules-center", "modules-right"],
     )
 
-    sub.add_parser("doctor", help="Run Hyprland health checks")
-
     args = parser.parse_args()
+
+    if args.command == "lint":
+        return cmd_lint()
+
+    if args.command == "doctor":
+        return cmd_doctor()
 
     if args.command == "monitors":
         if args.monitors_command == "set":
@@ -185,9 +227,6 @@ def main() -> int:
         if args.waybar_command == "toggle":
             return cmd_waybar_toggle(args.module, args.array)
         return cmd_waybar_list()
-
-    if args.command == "doctor":
-        return cmd_doctor()
 
     parser.print_help()
     return 0
