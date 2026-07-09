@@ -9,6 +9,7 @@ from hyprkit import monitors as mon
 from hyprkit import waybar as wb
 from hyprkit import doctor
 from hyprkit import lint as lint_mod
+from hyprkit import config_wizard
 from hyprkit.result import Status
 
 console = Console()
@@ -76,6 +77,10 @@ def cmd_lint() -> int:
 
     highs = sum(1 for i in issues if i.severity.value == "High")
     return 1 if highs > 0 else 0
+
+
+def cmd_config() -> int:
+    return config_wizard.run_wizard()
 
 
 def cmd_list() -> int:
@@ -192,6 +197,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="hyprkit", description="A companion CLI for managing Hyprland.")
     sub = parser.add_subparsers(dest="command")
 
+    sub.add_parser("config", help="Interactively improve your hyprland.conf")
     sub.add_parser("lint", help="Lint your hyprland.conf for common issues")
     sub.add_parser("doctor", help="Run Hyprland health checks")
 
@@ -211,6 +217,9 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+
+    if args.command == "config":
+        return cmd_config()
 
     if args.command == "lint":
         return cmd_lint()
