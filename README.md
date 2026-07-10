@@ -8,7 +8,6 @@ A companion CLI for managing and improving your Hyprland setup.
 ## What it does
 
 | Command | What it solves |
-|---|---|
 | `hyprkit monitors` | List and configure monitors without hand-editing config |
 | `hyprkit waybar` | Toggle Waybar modules on/off and reload instantly |
 | `hyprkit doctor` | Health check your Hyprland setup with a scored report |
