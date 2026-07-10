@@ -3,7 +3,6 @@
 A companion CLI for managing and improving your Hyprland setup.
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
-![License](https://img.shields.io/github/license/Kolgrim33/hyprkit)
 ![Platform](https://img.shields.io/badge/platform-Arch%20Linux-blue)
 
 ## What it does
@@ -41,7 +40,6 @@ hyprkit monitors set eDP-1  # interactively reconfigure a monitor
 
 If you don't confirm, nothing is written to disk — the live change reverts on next reload.
 
----
 
 ### `hyprkit waybar`
 
@@ -53,7 +51,6 @@ hyprkit waybar toggle network --array modules-left
 
 Finds your Waybar config automatically, toggles the module, saves, and restarts Waybar.
 
----
 
 ### `hyprkit doctor`
 
@@ -70,7 +67,7 @@ Runs health checks across your Hyprland session and gives you an overall health 
 - Network connectivity
 - Clipboard (wl-clipboard) available
 
----
+
 
 ### `hyprkit lint`
 
@@ -90,7 +87,6 @@ Reads your `hyprland.conf` and flags issues before they silently break things:
 
 On first run against the author's own config it caught 5 real issues including 4 duplicate `ALT+Tab` binds and a dead binary.
 
----
 
 ### `hyprkit config`
 
@@ -112,7 +108,6 @@ Interactively improves your existing `hyprland.conf`:
 
 Nothing is written without your confirmation.
 
----
 
 ## Requirements
 
@@ -127,6 +122,4 @@ Nothing is written without your confirmation.
 - XDG portal and screen sharing checks in `doctor`
 - Lua config support (Hyprland v0.55+)
 
-## License
 
-MIT
