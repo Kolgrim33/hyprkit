@@ -53,7 +53,7 @@ hyprkit waybar toggle network --array modules-left
 ```
 
 Finds your Waybar config automatically, toggles the module, saves, and restarts Waybar.
-![Uploading hyprkit1.png…]()
+<img width="1056" height="567" alt="hyprkit1" src="https://github.com/user-attachments/assets/2195b5bf-d619-4cdd-b467-3c7d8700d085" />
 
 
 ### `hyprkit doctor`
@@ -90,6 +90,7 @@ Reads your `hyprland.conf` and flags issues before they silently break things:
 - Missing `source=` files
 
 On first run against the author's own config it caught 5 real issues including 4 duplicate `ALT+Tab` binds and a dead binary.
+<img width="1837" height="945" alt="hyprkit2" src="https://github.com/user-attachments/assets/efbb52ab-4908-4a7b-883e-a73f6659b2ed" />
 
 
 ### `hyprkit config`
