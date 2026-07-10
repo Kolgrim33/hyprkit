@@ -1,4 +1,5 @@
 # hyprkit
+<img width="1222" height="798" alt="hyprkit" src="https://github.com/user-attachments/assets/ce030084-27c5-49f7-badc-7b6bf4a91b17" />
 
 A companion CLI for managing and improving your Hyprland setup.
 
@@ -52,6 +53,7 @@ hyprkit waybar toggle network --array modules-left
 ```
 
 Finds your Waybar config automatically, toggles the module, saves, and restarts Waybar.
+![Uploading hyprkit1.png…]()
 
 
 ### `hyprkit doctor`
