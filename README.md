@@ -12,7 +12,7 @@ A companion CLI for managing and improving your Hyprland setup.
 | `hyprkit waybar` | Toggle Waybar modules on/off and reload instantly |
 | `hyprkit doctor` | Health check your Hyprland setup with a scored report |
 | `hyprkit lint` | Catch config bugs before they break your session |
-| `hyprkit config` | Interactively improve your existing `hyprland.conf` |
+| `hyprkit config` | Interactively improve your existing or generate a new`hyprland.conf` |
 
 ## Install
 
