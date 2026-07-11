@@ -10,6 +10,7 @@ from hyprkit import waybar as wb
 from hyprkit import doctor
 from hyprkit import lint as lint_mod
 from hyprkit import config_wizard
+from hyprkit import fresh_config
 from hyprkit.result import Status
 
 console = Console()
@@ -197,7 +198,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="hyprkit", description="A companion CLI for managing Hyprland.")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("config", help="Interactively improve your hyprland.conf")
+    config_parser = sub.add_parser("config", help="Interactively improve or generate hyprland.conf")
+    config_parser.add_argument("--fresh", action="store_true", help="Generate a brand new config from scratch")
     sub.add_parser("lint", help="Lint your hyprland.conf for common issues")
     sub.add_parser("doctor", help="Run Hyprland health checks")
 

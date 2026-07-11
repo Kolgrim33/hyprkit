@@ -65,7 +65,7 @@ def check_hyprpaper() -> CheckResult:
         status=Status.WARN,
         detail="Installed but stopped",
         severity=Severity.LOW,
-        why_it_matters="hyprpaper is installed but not running, so your wallpaper may not be set or may revert to a default.",
+        why_it_matters="hyprpaper is installed but not running, so your wallpaper may not be set.",
         recommendation="Start it with: hyprpaper & (or add `exec-once = hyprpaper` to your hyprland.conf)",
         score_penalty=5,
     )
@@ -89,7 +89,7 @@ def check_nerd_font() -> CheckResult:
         status=Status.WARN,
         detail="No Nerd Font detected",
         severity=Severity.LOW,
-        why_it_matters="Waybar icons, many terminal prompts, and some Hyprland-adjacent tools rely on Nerd Font glyphs to render correctly. Without one, you'll see broken/missing icons.",
+        why_it_matters="Waybar icons and many terminal prompts rely on Nerd Font glyphs. Without one you'll see broken icons.",
         recommendation="Install one, e.g.: sudo pacman -S ttf-jetbrains-mono-nerd",
         score_penalty=5,
     )
@@ -109,7 +109,7 @@ def check_audio() -> CheckResult:
         status=Status.WARN,
         detail="No working audio server detected",
         severity=Severity.MEDIUM,
-        why_it_matters="Without a running audio server (PipeWire/PulseAudio), sound won't work in any application.",
+        why_it_matters="Without a running audio server, sound won't work in any application.",
         recommendation="Check status with: systemctl --user status pipewire pipewire-pulse",
         score_penalty=8,
     )
@@ -149,20 +149,88 @@ def check_clipboard() -> CheckResult:
         status=Status.WARN,
         detail="wl-clipboard not found",
         severity=Severity.LOW,
-        why_it_matters="Without wl-clipboard, many copy/paste integrations (screenshots to clipboard, clipboard managers) won't work under Wayland.",
+        why_it_matters="Without wl-clipboard, copy/paste integrations won't work under Wayland.",
         recommendation="Install with: sudo pacman -S wl-clipboard",
         score_penalty=3,
     )
 
 
+def check_xdg_portal() -> CheckResult:
+    portal_running = _proc_running("xdg-desktop-portal-hyprland") or _proc_running("xdg-desktop-portal")
+    binary_exists = shutil.which("xdg-desktop-portal-hyprland")
+
+    if not binary_exists:
+        return CheckResult(
+            name="XDG Portal",
+            status=Status.FAIL,
+            detail="xdg-desktop-portal-hyprland not installed",
+            severity=Severity.HIGH,
+            why_it_matters="Without this, screen sharing, file pickers, and browser camera/mic access won't work under Wayland.",
+            recommendation="Install with: sudo pacman -S xdg-desktop-portal-hyprland",
+            score_penalty=15,
+        )
+    if not portal_running:
+        return CheckResult(
+            name="XDG Portal",
+            status=Status.WARN,
+            detail="Installed but not running",
+            severity=Severity.MEDIUM,
+            why_it_matters="Screen sharing and file pickers won't work until the portal is running.",
+            recommendation="Add to hyprland.conf: exec-once = /usr/lib/xdg-desktop-portal-hyprland",
+            score_penalty=10,
+        )
+    return CheckResult(name="XDG Portal", status=Status.OK, detail="Running")
+
+
+def check_hypridle() -> CheckResult:
+    if not shutil.which("hypridle"):
+        return CheckResult(
+            name="Idle Daemon",
+            status=Status.WARN,
+            detail="hypridle not installed",
+            severity=Severity.LOW,
+            why_it_matters="Without an idle daemon your screen will never lock or turn off automatically.",
+            recommendation="Install with: sudo pacman -S hypridle",
+            score_penalty=3,
+        )
+    if _proc_running("hypridle"):
+        return CheckResult(name="Idle Daemon", status=Status.OK, detail="hypridle running")
+    return CheckResult(
+        name="Idle Daemon",
+        status=Status.WARN,
+        detail="hypridle installed but not running",
+        severity=Severity.LOW,
+        why_it_matters="Your screen won't auto-lock or turn off without an idle daemon running.",
+        recommendation="Add to hyprland.conf: exec-once = hypridle",
+        score_penalty=3,
+    )
+
+
+def check_hyprlock() -> CheckResult:
+    if not shutil.which("hyprlock"):
+        return CheckResult(
+            name="Screen Lock",
+            status=Status.WARN,
+            detail="hyprlock not installed",
+            severity=Severity.LOW,
+            why_it_matters="Without a screen locker your session is unprotected when idle.",
+            recommendation="Install with: sudo pacman -S hyprlock",
+            score_penalty=3,
+        )
+    return CheckResult(name="Screen Lock", status=Status.OK, detail="hyprlock installed")
+
+
 CHECKS = [
     check_hyprland_running,
+    check_xdg_portal,
     check_waybar,
     check_hyprpaper,
     check_nerd_font,
     check_audio,
     check_network,
     check_clipboard,
+    check_hypridle,
+    check_hyprlock,
 ]
 
 
