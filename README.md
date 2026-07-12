@@ -41,7 +41,6 @@ hyprkit monitors set eDP-1  # interactively reconfigure a monitor
 
 If you don't confirm, nothing is written to disk — the live change reverts on next reload.
 
----
 
 ### `hyprkit waybar`
 
@@ -55,7 +54,6 @@ Finds your Waybar config automatically, toggles the module, saves, and restarts 
 
 <img width="1056" height="567" alt="hyprkit1" src="https://github.com/user-attachments/assets/2195b5bf-d619-4cdd-b467-3c7d8700d085" />
 
----
 
 ### `hyprkit doctor`
 
@@ -75,7 +73,6 @@ Runs health checks across your Hyprland session and gives you an overall health 
 - Idle daemon (hypridle)
 - Screen locker (hyprlock)
 
----
 
 ### `hyprkit lint`
 
@@ -105,7 +102,6 @@ On first run against the author's own config it caught 5 real issues including 4
 
 <img width="1837" height="945" alt="hyprkit2" src="https://github.com/user-attachments/assets/efbb52ab-4908-4a7b-883e-a73f6659b2ed" />
 
----
 
 ### `hyprkit config`
 
@@ -131,7 +127,6 @@ hyprkit config --fresh  # generate a brand new config from scratch
 
 Nothing is written without your confirmation.
 
----
 
 ## Requirements
 
