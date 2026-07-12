@@ -8,15 +8,13 @@ A companion CLI for managing and improving your Hyprland setup.
 
 ## What it does
 
-`hyprkit monitors`  List and configure monitors without hand-editing config 
-
-`hyprkit waybar` Toggle Waybar modules on/off and reload instantly 
- `
- hyprkit doctor`  Health check your Hyprland setup with a scored report 
- 
- `hyprkit lint`  Catch config bugs before they break your session 
- 
- `hyprkit config` |Interactively improve your existing or generate a new`hyprland.conf` 
+| Command | What it solves |
+|---|---|
+| `hyprkit monitors` | List and configure monitors without hand-editing config |
+| `hyprkit waybar` | Toggle Waybar modules on/off and reload instantly |
+| `hyprkit doctor` | Health check your Hyprland setup with a scored report |
+| `hyprkit lint` | Catch config bugs before they break your session (supports `.conf` and `.lua`) |
+| `hyprkit config` | Interactively improve your existing or generate a new config |
 
 ## Install
 
@@ -39,10 +37,11 @@ hyprkit monitors set eDP-1  # interactively reconfigure a monitor
 1. Picking a resolution/refresh from modes Hyprland actually reports as supported
 2. Setting scale and position
 3. Applying a live preview via `hyprctl keyword monitor` — see the change before committing
-4. On confirmation, backs up `hyprland.conf` and writes the new `monitor=` line
+4. On confirmation, backs up your config and writes the new `monitor=` line
 
 If you don't confirm, nothing is written to disk — the live change reverts on next reload.
 
+---
 
 ### `hyprkit waybar`
 
@@ -53,8 +52,10 @@ hyprkit waybar toggle network --array modules-left
 ```
 
 Finds your Waybar config automatically, toggles the module, saves, and restarts Waybar.
+
 <img width="1056" height="567" alt="hyprkit1" src="https://github.com/user-attachments/assets/2195b5bf-d619-4cdd-b467-3c7d8700d085" />
 
+---
 
 ### `hyprkit doctor`
 
@@ -65,13 +66,16 @@ hyprkit doctor
 Runs health checks across your Hyprland session and gives you an overall health score:
 
 - Hyprland running
+- XDG desktop portal (screen sharing, file pickers)
 - Waybar installed and running
 - Nerd Font installed
 - Audio server (PipeWire/PulseAudio) active
 - Network connectivity
 - Clipboard (wl-clipboard) available
+- Idle daemon (hypridle)
+- Screen locker (hyprlock)
 
-
+---
 
 ### `hyprkit lint`
 
@@ -79,8 +83,9 @@ Runs health checks across your Hyprland session and gives you an overall health 
 hyprkit lint
 ```
 
-Reads your `hyprland.conf` and flags issues before they silently break things:
+Auto-detects your config format — works with both `hyprland.conf` and `hyprland.lua` (Hyprland v0.55+). When both exist, prefers the Lua config.
 
+**For `.conf` configs, catches:**
 - `$VAR` used before it's defined
 - Duplicate keybinds (reports both conflicting line numbers)
 - Missing `$mainMod` definition
@@ -89,42 +94,58 @@ Reads your `hyprland.conf` and flags issues before they silently break things:
 - Unclosed braces
 - Missing `source=` files
 
+**For `.lua` configs, catches:**
+- Duplicate `hl.bind()` keybinds
+- Dead binaries in `hl.exec_cmd()` calls
+- Missing `hl.monitor()` definition
+- `require()` sourcing files that don't exist
+- Unused local variables
+
 On first run against the author's own config it caught 5 real issues including 4 duplicate `ALT+Tab` binds and a dead binary.
+
 <img width="1837" height="945" alt="hyprkit2" src="https://github.com/user-attachments/assets/efbb52ab-4908-4a7b-883e-a73f6659b2ed" />
 
+---
 
 ### `hyprkit config`
 
 ```bash
-hyprkit config
+hyprkit config          # improve your existing config interactively
+hyprkit config --fresh  # generate a brand new config from scratch
 ```
 
-Interactively improves your existing `hyprland.conf`:
-
+**Improve mode** walks through your existing config:
 1. Runs `hyprkit lint` first so you know what's broken
-2. Walks through each issue and asks what to do:
-   - Missing `$mainMod` → pick your modifier key, it gets inserted
-   - Duplicate keybinds → choose which one wins
-   - Dead `exec` binaries → optionally remove them
-   - Missing `animations`, `decoration`, `input` blocks → inject sensible defaults
-3. Shows a diff of every change before saving
-4. Backs up your original config with a timestamp
-5. Re-runs lint on the improved config to confirm issues resolved
+2. Fixes missing `$mainMod`, duplicate keybinds, dead exec binaries
+3. Offers to inject missing `animations`, `decoration`, `input` blocks
+4. Shows a diff of every change before saving
+5. Backs up your original config with a timestamp
+6. Re-runs lint on the improved config to confirm issues resolved
+
+**Fresh mode** generates a new config tailored to your machine:
+1. Detects your monitors automatically
+2. Asks which terminal, launcher, bar, and wallpaper tool you use (only shows installed options)
+3. Asks your preferred style (minimal / balanced / full)
+4. Generates a clean, commented `hyprland.conf`
+5. Runs lint on it before saving
 
 Nothing is written without your confirmation.
 
+---
 
 ## Requirements
 
 - Python 3.11+
 - Hyprland (running session for `monitors` and `doctor`)
-- `rich` (`pip install rich`)
+- `rich` — `pip install --break-system-packages rich`
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, how to add doctor checks and lint rules, and good first issues.
 
 ## Roadmap
 
-- `hyprkit config --fresh` — generate a new config from scratch
 - `hyprkit switch` — hyprswitch integration for window management
-- XDG portal and screen sharing checks in `doctor`
-- Lua config support (Hyprland v0.55+)
-
-
+- Lua config support in `hyprkit config` wizard
+- AUR package (`hyprkit-git`) — pending AUR registration reopening
+- Demo gif
