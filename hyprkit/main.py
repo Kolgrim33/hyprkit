@@ -8,7 +8,6 @@ from rich.prompt import Prompt, Confirm, FloatPrompt
 from hyprkit import monitors as mon
 from hyprkit import waybar as wb
 from hyprkit import doctor
-from hyprkit import lint as lint_mod
 from hyprkit import config_wizard
 from hyprkit import fresh_config
 from hyprkit.result import Status
@@ -47,11 +46,10 @@ def cmd_doctor() -> int:
 
 
 def cmd_lint() -> int:
-    from hyprkit.lint import DEFAULT_CONFIG
-    path = DEFAULT_CONFIG
-    console.print(f"[cyan]Linting[/cyan] [dim]{path}[/dim]\n")
+    from hyprkit.lint import lint_auto
+    issues, config_path = lint_auto()
 
-    issues = lint_mod.lint_config(path)
+    console.print(f"[cyan]Linting[/cyan] [dim]{config_path}[/dim]\n")
 
     if not issues:
         console.print("[green]✓ No issues found.[/green]")
@@ -80,7 +78,9 @@ def cmd_lint() -> int:
     return 1 if highs > 0 else 0
 
 
-def cmd_config() -> int:
+def cmd_config(fresh: bool = False) -> int:
+    if fresh:
+        return fresh_config.run_fresh()
     return config_wizard.run_wizard()
 
 
@@ -198,9 +198,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="hyprkit", description="A companion CLI for managing Hyprland.")
     sub = parser.add_subparsers(dest="command")
 
-    config_parser = sub.add_parser("config", help="Interactively improve or generate hyprland.conf")
+    config_parser = sub.add_parser("config", help="Interactively improve or generate hyprland config")
     config_parser.add_argument("--fresh", action="store_true", help="Generate a brand new config from scratch")
-    sub.add_parser("lint", help="Lint your hyprland.conf for common issues")
+    sub.add_parser("lint", help="Lint your hyprland config (auto-detects .conf or .lua)")
     sub.add_parser("doctor", help="Run Hyprland health checks")
 
     monitors_parser = sub.add_parser("monitors", help="List or configure monitors")
@@ -221,7 +221,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.command == "config":
-        return cmd_config()
+        return cmd_config(fresh=getattr(args, "fresh", False))
 
     if args.command == "lint":
         return cmd_lint()
@@ -244,4 +244,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print("\n[Cancelled]")
+        sys.exit(0)

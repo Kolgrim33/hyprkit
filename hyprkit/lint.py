@@ -155,3 +155,28 @@ def lint_config(path: Path = DEFAULT_CONFIG) -> list[LintIssue]:
         issues.append(LintIssue(None, "No $mainMod defined — most bind lines will fail", Severity.HIGH))
 
     return issues
+
+
+# ---------------------------------------------------------------------------
+# Auto-detect entry point
+# ---------------------------------------------------------------------------
+
+LUA_CONFIG = Path.home() / ".config" / "hypr" / "hyprland.lua"
+
+
+def lint_auto() -> tuple[list, str]:
+    """Detect whether to lint .conf or .lua and return (issues, config_path_str)."""
+    from hyprkit.lint_lua import lint_lua_config, DEFAULT_LUA_CONFIG
+
+    conf_exists = DEFAULT_CONFIG.exists()
+    lua_exists = LUA_CONFIG.exists()
+
+    if lua_exists and conf_exists:
+        # Both exist — prefer lua since it's the newer format
+        return lint_lua_config(LUA_CONFIG), str(LUA_CONFIG)
+    elif lua_exists:
+        return lint_lua_config(LUA_CONFIG), str(LUA_CONFIG)
+    elif conf_exists:
+        return lint_config(DEFAULT_CONFIG), str(DEFAULT_CONFIG)
+    else:
+        return [LintIssue(None, "No hyprland.conf or hyprland.lua found", Severity.HIGH)], "unknown"
